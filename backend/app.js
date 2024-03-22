@@ -68,4 +68,3 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-// mongodb+srv://ali:alihassan5@cluster0.8vsqbst.mongodb.net/sn?retryWrites=true&w=majority

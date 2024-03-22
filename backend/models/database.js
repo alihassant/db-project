@@ -25,26 +25,6 @@ const databaseSchema = new Schema(
     },
     tHeaders: [
       Schema.Types.Mixed,
-      // {
-      //   tH1: {
-      //     type: String,
-      //   },
-      //   tH2: {
-      //     type: String,
-      //   },
-      //   tH3: {
-      //     type: String,
-      //   },
-      //   tH4: {
-      //     type: String,
-      //   },
-      //   tH5: {
-      //     type: String,
-      //   },
-      //   tH6: {
-      //     type: String,
-      //   },
-      // },
     ],
     users: [
       {

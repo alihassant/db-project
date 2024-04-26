@@ -5,7 +5,7 @@ import { handleLogin } from "@/utils/auth";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const INITIAL_USER = {
   name: "",
@@ -16,10 +16,23 @@ const INITIAL_USER = {
 };
 
 export default function Signup() {
+  const [priceId, setPriceId] = useState();
+
+  useEffect(() => {
+    const priceId = new URLSearchParams(window.location.search).get("priceId");
+    setPriceId(priceId);
+  }, []);
+
   const Router = useRouter();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(INITIAL_USER);
+
+  // useEffect(() => {
+  //   if (!priceId) {
+  //     window.location.pathname = "/pricing";
+  //   }
+  // }, []);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -42,12 +55,39 @@ export default function Signup() {
       setError(null);
       setLoading(true);
       const url = `http://localhost:8080/api/auth/signup`;
-      const payload = { ...user };
+      const payload = { ...user, priceId };
       const response = await axios.post(url, payload);
+      const { userId, email, name } = response.data;
       handleLogin(response.data.token);
-      window.location.pathname = "/dashboard";
+      // window.location.pathname = "/signup/plans";
+      if (priceId !== "free") {
+        const customerId = await axios.post(
+          "http://localhost:8080/api/subscription/createCustomer",
+          {
+            userId,
+            email,
+            name,
+          }
+        );
+
+        if (customerId.data.success) {
+          const subscription = await axios.post(
+            "http://localhost:8080/api/subscription/createCheckoutLink",
+            {
+              userId,
+              priceId,
+            }
+          );
+          console.log(subscription.data);
+          if (subscription.data.success) {
+            Router.push(subscription.data.url);
+          }
+        }
+      } else {
+        Router.push("/dashboard");
+      }
     } catch (err) {
-      // console.log(err);
+      console.log(err);
       if (err.message === "Network Error") {
         setError("Network Error: Please check your internet connection.");
       }
@@ -59,11 +99,12 @@ export default function Signup() {
       setLoading(false);
     }
   }
+  // console.log(user);
 
   return (
     <>
       <div className="container">
-        <div className="card shadow-lg o-hidden border-0 my-5">
+        <div className="card shadow-lg o-hidden border-0 my-5 ">
           <div className="card-body p-0">
             <div className="row">
               <div className="col-lg-5 d-none d-lg-flex">
@@ -77,10 +118,10 @@ export default function Signup() {
               </div>
               <div className="col-lg-7">
                 <div className="p-5">
-                  <div className="text-center">
+                  <div className="text-center mb-md-5">
                     <h4 className="text-dark mb-4">Create an Account!</h4>
                   </div>
-                  <form className="user" onSubmit={handleSubmit}>
+                  <form className="user pt-md-4" onSubmit={handleSubmit}>
                     {error && (
                       <div className="alert alert-danger" role="alert">
                         {error}
@@ -156,24 +197,9 @@ export default function Signup() {
                         "Register Account"}
                     </button>
                     <hr />
-                    <a
-                      className="btn btn-primary d-block btn-google btn-user w-100 mb-2"
-                      role="button"
-                    >
-                      <i className="fab fa-google" />
-                      &nbsp; Register with Google
-                    </a>
-                    <a
-                      className="btn btn-primary d-block btn-facebook btn-user w-100"
-                      role="button"
-                    >
-                      <i className="fab fa-facebook-f" />
-                      &nbsp; Register with Facebook
-                    </a>
-                    <hr />
                   </form>
-                  <div className="text-center">
-                    <a className="small" href="forgot-password.html">
+                  <div className="text-center pt-md-5">
+                    <a className="small" href="/reset">
                       Forgot Password?
                     </a>
                   </div>
@@ -183,11 +209,15 @@ export default function Signup() {
                     </a>
                   </div>
                 </div>
+                <div className="text-center pt-md-5">
+                  <p className="small"></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <Script defer src="/dashboard/assets/bootstrap/js/bootstrap.min.js" />
       <Script defer src="/dashboard/assets/js/bs-init.js" />
       <Script defer src="/dashboard/assets/js/theme.js" />

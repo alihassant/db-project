@@ -19,13 +19,19 @@ const databaseSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    emails: {
+      type: Boolean,
+      default: false,
+    },
+    notifications: {
+      type: Boolean,
+      default: false,
+    },
     totalHeaders: {
       type: Number,
       default: 0,
     },
-    tHeaders: [
-      Schema.Types.Mixed,
-    ],
+    tHeaders: [Schema.Types.Mixed],
     users: [
       {
         userId: {

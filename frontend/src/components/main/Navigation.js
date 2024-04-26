@@ -80,7 +80,7 @@ export default function Navigation() {
               <Link
                 className="btn btn-primary shadow"
                 role="button"
-                href="/signup"
+                href="/pricing"
               >
                 Sign up
               </Link>

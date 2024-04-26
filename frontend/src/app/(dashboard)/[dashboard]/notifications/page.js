@@ -5,7 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 
-export default function Profile() {
+export default function Notifications() {
   const [user, setUser] = useState();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function Profile() {
         }
       }
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
@@ -55,7 +55,7 @@ export default function Profile() {
           }
         }
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       } finally {
         setLoading(false);
       }
@@ -70,6 +70,7 @@ export default function Profile() {
     if (user) {
       getUserNotifications();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   return (

@@ -2,9 +2,11 @@
 
 import "@/app/dashboard.min.css";
 import Loading from "@/components/dashboard/Loading";
+import { PLANS } from "@/config/stripe";
 import axios from "axios";
 import Cookies from "js-cookie";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
@@ -30,10 +32,16 @@ const INITIAL_NEW_PHOTO = {
   userId: "",
 };
 
+const INITIAL_SUB_CHANGE = {
+  priceId: "",
+};
+
 const defaultImage =
   "https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg";
 
 export default function Profile() {
+  const router = useRouter();
+
   const [user, setUser] = useState();
   const [userData, setUserData] = useState();
 
@@ -78,6 +86,13 @@ export default function Profile() {
   const [editDetails, setEditDetails] = useState(INITIAL_EDIT_DETAILS);
   const [password, setPassword] = useState(INITIAL_PASSWORD);
 
+  const [priceId, setPriceId] = useState();
+  const freePlan = PLANS.find((plan) => plan.name === "Free");
+  const basicPlan = PLANS.find((plan) => plan.name === "Basic");
+  const proPlan = PLANS.find((plan) => plan.name === "Pro");
+
+  const token = Cookies.get("token");
+
   function handleAboutChange(e) {
     const { name, value } = e.target;
     setEditAbout((prev) => ({ ...prev, [name]: value }));
@@ -108,9 +123,12 @@ export default function Profile() {
     }
     const data = new FormData();
     data.append("file", newPhoto.profilePic);
-    data.append("upload_preset", process.env.CLOUDINARY_UPLOAD_PRESET);
-    data.append("cloud_name", process.env.CLOUDINARY_CLOUD_NAME);
-    const response = await axios.post(process.env.CLOUDINARY_UPLOAD_URL, data);
+    //ml_default is my upload preset name
+    data.append("upload_preset", "ml_default");
+    //davfhdzxx is my personal cloud name
+    data.append("cloud_name", "davfhdzxx");
+    const url = "https://api.cloudinary.com/v1_1/davfhdzxx/image/upload";
+    const response = await axios.post(url, data);
     const images = {
       url: response.data.url,
       publicId: response.data.public_id,
@@ -227,6 +245,76 @@ export default function Profile() {
       if (err.response.data.message) {
         setError(err.response.data.message);
       }
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubscriptionSubmit(e) {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError(null);
+      const url = "http://localhost:8080/api/subscription/changeSubscription";
+      const payload = { userId: user._id, priceId };
+      const response = await axios.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response) {
+        getUser();
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubCancel(e) {
+    e.preventDefault();
+    try {
+      const token = Cookies.get("token");
+      setLoading(true);
+      setError(null);
+      const url = "http://localhost:8080/api/subscription/cancelSubscription";
+      const response = await axios.post(
+        url,
+        { userId: user._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response) {
+        getUser();
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubInfoChange(e) {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError(null);
+      const url = "http://localhost:8080/api/subscription/changePaymentMethod";
+      const payload = { userId: user._id };
+      const response = await axios.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response) {
+        router.push(response.data.url);
+      }
+    } catch (err) {
       console.log(err);
     } finally {
       setLoading(false);
@@ -366,7 +454,8 @@ export default function Profile() {
                             <div className="mb-3">
                               <label className="form-label">
                                 <strong>
-                                  Last Name: {user.name.split(" ")[1]}
+                                  Last Name:{" "}
+                                  {user.name.split(" ")[1] || "No Last Name."}
                                 </strong>
                               </label>
                             </div>
@@ -404,6 +493,205 @@ export default function Profile() {
                           Change Password
                         </button>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="card shadow mb-3">
+                    <div className="card-header py-3">
+                      <p className="text-primary m-0 fw-bold">Subscription</p>
+                    </div>
+                    <div className="card-body">
+                      {user.payments.subscription !== "" && (
+                        <>
+                          <div className="mb-3">
+                            <label className="form-label" htmlFor="username">
+                              <strong>
+                                Current Plan:{" "}
+                                {user.extraRole === "superAdmin"
+                                  ? "Admin".toUpperCase()
+                                  : user.currentPlan.toUpperCase()}
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label" htmlFor="username">
+                              <strong>
+                                Subscription Status:{" "}
+                                {(user.currentPlan === "free" && "Free") ||
+                                  user.payments.subscription?.status.toUpperCase()}
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label" htmlFor="username">
+                              <strong>
+                                Subscription Expires:{" "}
+                                {((user.currentPlan === "free" ||
+                                  user.extraRole === "superAdmin") &&
+                                  "NEVER") ||
+                                  new Date(
+                                    user.payments.subscription.validTill * 1000
+                                  ).toDateString()}
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            {user.payments.paymentMethod.hasCard &&
+                              (user.payments.subscription.status ===
+                                "canceled" ||
+                                user.payments.subscription.status ===
+                                  "expired" ||
+                                user.currentPlan === "free") && (
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  type="submit"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#subscriptionModal"
+                                >
+                                  Upgrade Plan
+                                </button>
+                              )}
+
+                            {user.payments.paymentMethod.hasCard &&
+                              user.payments.subscription.status === "active" &&
+                              user.currentPlan !== "free" && (
+                                <>
+                                  <button
+                                    className="btn btn-primary btn-sm"
+                                    type="button"
+                                    onClick={handleSubInfoChange}
+                                  >
+                                    {(loading && (
+                                      <div
+                                        className="spinner-border spinner-border-sm"
+                                        role="status"
+                                      >
+                                        <span className="visually-hidden">
+                                          Loading...
+                                        </span>
+                                      </div>
+                                    )) ||
+                                      "Change Plan"}
+                                  </button>
+                                  <button
+                                    className="btn btn-danger btn-sm mx-2"
+                                    type="submit"
+                                    onClick={handleSubCancel}
+                                  >
+                                    {(loading && (
+                                      <div
+                                        className="spinner-border spinner-border-sm"
+                                        role="status"
+                                      >
+                                        <span className="visually-hidden">
+                                          Loading...
+                                        </span>
+                                      </div>
+                                    )) ||
+                                      "Cancel Subscription"}
+                                  </button>
+                                </>
+                              )}
+                            {user.payments.paymentMethod.hasCard || (
+                              <p>Add payment method to change plan.</p>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="card shadow mb-3">
+                    <div className="card-header py-3">
+                      <p className="text-primary m-0 fw-bold">Payment Method</p>
+                    </div>
+                    <div className="card-body">
+                      {user.payments.paymentMethod.hasCard && (
+                        <>
+                          <div className="mb-3">
+                            <label className="form-label" htmlFor="username">
+                              <strong>
+                                Card Number:{" "}
+                                {user.extraRole === "superAdmin"
+                                  ? "Admin".toUpperCase()
+                                  : `xxxx xxxx xxxx ${user.payments.paymentMethod.card.last4}`}
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label" htmlFor="username">
+                              <strong>
+                                Expiry Date:{" "}
+                                {`${user.payments.paymentMethod.card.exp_month}/${user.payments.paymentMethod.card.exp_year}`}
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            <label className="form-label">
+                              <strong>
+                                Card Brand:{" "}
+                                {user.payments.paymentMethod.card.brand}
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            <button
+                              className="btn btn-primary btn-sm"
+                              type="submit"
+                              onClick={handleSubInfoChange}
+                            >
+                              {(loading && (
+                                <div
+                                  className="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span className="visually-hidden">
+                                    Loading...
+                                  </span>
+                                </div>
+                              )) ||
+                                "Change Payment Method"}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {!user.payments.paymentMethod.hasCard && (
+                        <>
+                          <div className="mb-3">
+                            <label className="form-label" htmlFor="username">
+                              <strong>
+                                You do not have a payment method added yet.
+                              </strong>
+                              <br></br>
+                            </label>
+                          </div>
+                          <div className="mb-3">
+                            <button
+                              className="btn btn-primary btn-sm"
+                              type="submit"
+                              onClick={handleSubInfoChange}
+                            >
+                              {(loading && (
+                                <div
+                                  className="spinner-border spinner-border-sm"
+                                  role="status"
+                                >
+                                  <span className="visually-hidden">
+                                    Loading...
+                                  </span>
+                                </div>
+                              )) ||
+                                "Add Payment Method"}
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -899,8 +1187,412 @@ export default function Profile() {
           </div>
         </div>
       )}
-
       {/* change profile photo modal end */}
+
+      {/* subscription change modal */}
+      <div
+        className="modal modal-lg fade"
+        id="subscriptionModal"
+        tabIndex="-1"
+        aria-labelledby="subscriptionModal"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="exampleModalLabel">
+                Change Subscription
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                onClick={() => {
+                  setError(null);
+                  setMessage(null);
+                }}
+              ></button>
+            </div>
+            <div
+              className="modal-body"
+              style={{
+                backgroundColor: "#f5f6f8",
+                color: "black",
+              }}
+            >
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              )}
+              {message && (
+                <div className="alert alert-success" role="alert">
+                  {message}
+                </div>
+              )}
+              <section className="py-4 ">
+                {/* Start: Pricing Clean */}
+                <div className="container py-4 py-xl-5">
+                  <div className="row mb-5">
+                    <div className="col-md-8 col-xl-6 text-center mx-auto">
+                      <h2 className="display-6 fw-bold mb-4">Plans</h2>
+                      <p className="text-muted fs-5">
+                        Select 1 of the plans below to get started.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="row gy-4 row-cols-1 row-cols-md-2 row-cols-lg-3">
+                    <div className="col">
+                      <div
+                        className="card border border-secondary border-2 h-100"
+                        style={{ color: "black" }}
+                      >
+                        <div className="card-body d-flex flex-column justify-content-between p-4">
+                          <div>
+                            <h6 className="fw-bold text-muted">Free</h6>
+                            <h4 className="display-5 fw-bold mb-1">$0</h4>
+                            <label className="form-text mb-4">per month</label>
+                            <ul className="list-unstyled">
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>
+                                  <b>Three</b> Basic Databases
+                                </span>
+                              </li>
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>
+                                  <b>5</b> Users per Database.
+                                </span>
+                              </li>
+                            </ul>
+                          </div>
+                          <a
+                            className="btn btn-primary"
+                            role="button"
+                            onClick={() => setPriceId("free")}
+                          >
+                            {(priceId === freePlan.price.priceIds.test &&
+                              "Selected") ||
+                              "Select"}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div
+                        className="card border border-warning border-2 h-100"
+                        style={{ color: "black" }}
+                      >
+                        <div className="card-body d-flex flex-column justify-content-between p-4">
+                          <span
+                            className="badge bg-warning position-absolute top-0 end-0  text-uppercase "
+                            style={{ color: "black" }}
+                          >
+                            Most Popular
+                          </span>
+                          <div>
+                            <h6 className="fw-bold text-muted">Basic</h6>
+                            <h4 className="display-5 fw-bold mb-1">$20</h4>
+                            <label className="form-text mb-4">per month</label>
+
+                            <ul className="list-unstyled">
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>
+                                  <b>TEN</b> Advance Databases
+                                </span>
+                              </li>
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>
+                                  <b>15</b> Users per Database
+                                </span>
+                              </li>
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>PDF Generation</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <a
+                            className="btn btn-warning"
+                            role="button"
+                            name="plan"
+                            onClick={() =>
+                              setPriceId(basicPlan.price.priceIds.test)
+                            }
+                          >
+                            {(priceId === basicPlan.price.priceIds.test &&
+                              "Selected") ||
+                              "Select"}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div
+                        className="card border border-secondary border-2 h-100"
+                        style={{ color: "black" }}
+                      >
+                        <div className="card-body d-flex flex-column justify-content-between p-4">
+                          <div className="pb-4">
+                            <h6 className="fw-bold text-muted">Pro</h6>
+                            <h4 className="display-5 fw-bold mb-1">$50</h4>
+                            <label className="form-text mb-4">per month</label>
+                            <ul className="list-unstyled">
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>
+                                  <b>Unlimited</b> Advance Databases
+                                </span>
+                              </li>
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>
+                                  <b>30</b> Users per Database
+                                </span>
+                              </li>
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>PDF Generation</span>
+                              </li>
+                              <li className="d-flex mb-2">
+                                <span className="bs-icon-xs bs-icon-rounded bs-icon me-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="1em"
+                                    height="1em"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="icon icon-tabler icon-tabler-check fs-5 text-primary-emphasis"
+                                  >
+                                    <path
+                                      stroke="none"
+                                      d="M0 0h24v24H0z"
+                                      fill="none"
+                                    />
+                                    <path d="M5 12l5 5l10 -10" />
+                                  </svg>
+                                </span>
+                                <span>Real Time Notifications and Emails</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <a
+                            className="btn btn-primary"
+                            role="button"
+                            onClick={() =>
+                              setPriceId(proPlan.price.priceIds.test)
+                            }
+                          >
+                            {(priceId === proPlan.price.priceIds.test &&
+                              "Selected") ||
+                              "Select"}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* End: Pricing Clean */}
+              </section>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+                onClick={() => {
+                  setError(null);
+                  setMessage(null);
+                }}
+              >
+                Close
+              </button>
+              <form onSubmit={handleSubscriptionSubmit}>
+                <button type="submit" className="btn btn-primary">
+                  {(loading && (
+                    <div
+                      className="spinner-border spinner-border-sm"
+                      role="status"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  )) ||
+                    "Change Subscription"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* subscription change modal close */}
 
       <Script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></Script>
       {/* <Script src="/dashboard/assets/js/bs-init.js"></Script>

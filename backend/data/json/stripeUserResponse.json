@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "customer": {
+      "id": "cus_PoODPi72aizLhM",
+      "object": "customer",
+      "address": null,
+      "balance": 0,
+      "created": 1711503450,
+      "currency": null,
+      "default_source": null,
+      "delinquent": false,
+      "description": null,
+      "discount": null,
+      "email": "bella@vortaps.tech",
+      "invoice_prefix": "7EAD3C30",
+      "invoice_settings": {
+          "custom_fields": null,
+          "default_payment_method": null,
+          "footer": null,
+          "rendering_options": null
+      },
+      "livemode": false,
+      "metadata": {},
+      "name": "Bella Cat",
+      "next_invoice_sequence": 1,
+      "phone": null,
+      "preferred_locales": [],
+      "shipping": null,
+      "tax_exempt": "none",
+      "test_clock": null
+  }
+}

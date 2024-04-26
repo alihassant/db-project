@@ -14,6 +14,9 @@ const adminRoutes = require("./routes/admin");
 const superAdminRoutes = require("./routes/superAdmin");
 const userRoutes = require("./routes/user");
 const databaseRoutes = require("./routes/datebase");
+const subscriptionRoutes = require("./routes/subscription");
+const isAuth = require("./middleware/is-auth");
+const isSuperAdmin = require("./middleware/checkSuperAdmin");
 
 const SERVER_PORT = 8080;
 const LOCAL_MONGO_SERVER = "mongodb://127.0.0.1:27017/db-p";
@@ -42,8 +45,9 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/superAdmin", superAdminRoutes);
+app.use("/api/superAdmin", isAuth, isSuperAdmin, superAdminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/db", databaseRoutes);
 app.use("/api/post", postDataRoutes);
@@ -67,4 +71,3 @@ mongoose
     const io = require("./socket").init(server);
   })
   .catch((err) => console.log(err));
-

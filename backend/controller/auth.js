@@ -1,16 +1,19 @@
+const crypto = require("crypto");
+
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const User = require("../models/user");
 
 const transporter = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
   auth: {
-    user: "ee3c6090ef79a8",
-    pass: "12604643b9ff65",
+    user: process.env.EMAIL_AUTH_USER,
+    pass: process.env.EMAIL_AUTH_PASS,
   },
 });
 
@@ -36,10 +39,19 @@ exports.signup = async (req, res, next) => {
       email: emailBody,
       username: usernameBody,
       password,
+      priceId,
     } = req.body;
+
     const email = emailBody.toLowerCase();
     const username = usernameBody.toLowerCase();
     const checkUserEmail = await User.findOne({ email });
+
+    if (!priceId || !email || !username || !password) {
+      const error = new Error("Please provide all the fields.");
+      error.statusCode = 422;
+      throw error;
+    }
+
     if (checkUserEmail) {
       const error = new Error("User already exists with this email.");
       error.statusCode = 422;
@@ -54,20 +66,53 @@ exports.signup = async (req, res, next) => {
     }
 
     const hashedPw = await bcrypt.hash(password, 12);
-    const user = new User({
-      name,
+
+    // creating stripe customer
+    const customer = await stripe.customers.create({
       email,
-      username,
-      password: hashedPw,
+      name,
     });
+
+    let user;
+    if (priceId === "free") {
+      user = new User({
+        name,
+        email,
+        username,
+        password: hashedPw,
+        customerId: customer.id,
+        currentPlan: "free",
+        payments: {
+          subscription: {
+            subscriptionId: "free",
+            priceId: "free",
+            status: "active",
+            startedOn: Date.now(),
+          },
+        },
+      });
+    } else {
+      user = new User({
+        name,
+        email,
+        username,
+        password: hashedPw,
+        customerId: customer.id,
+      });
+    }
+    // console.log(user);
+
     const result = await user.save();
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "7d",
     });
 
     res.status(201).json({
       token,
       message: "User Registered!",
+      email: result.email,
+      name: result.name,
       userId: result._id,
       username: result.username,
     });
@@ -542,10 +587,139 @@ exports.getUser = async (req, res, next) => {
   const { userId } = req.params;
   // console.log(req.headers.authorization);
   try {
-    const user = await User.findById(userId).populate("entries");
+    const user = await User.findById(userId)
+      .populate("toDos")
+      .populate("entries");
+    if (!user) {
+      const error = new Error("User not found!");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const currentDate = Date.now();
+    const validTill = user.payments.subscription.validTill * 1000;
+
+    if (
+      validTill < currentDate &&
+      user.payments.subscription.status === "canceled"
+    ) {
+      user.payments.subscription = {
+        subscriptionId: null,
+        validTill: null,
+        status: "free",
+      };
+      user.currentPlan = "free";
+      await user.save();
+    }
+
+    /*
+    function isGreaterThan30Days(timestamp) {
+      // Check if timestamp is a valid number
+      if (typeof timestamp !== "number" || isNaN(timestamp)) {
+        throw new Error("Invalid timestamp provided");
+      }
+
+      // Get the current timestamp in milliseconds
+      const currentTimestamp = Date.now();
+
+      // Calculate the timestamp 30 days in the past
+      const thirtyDaysAgo = currentTimestamp - 30 * 24 * 60 * 60 * 1000;
+      console.log("Thirty Days Ago: ", thirtyDaysAgo);
+
+      // Return false if the provided timestamp is older than 30 days ago
+      return timestamp < thirtyDaysAgo;
+    }
+    console.log(isGreaterThan30Days(1629340800000));
+
+    if (user.payments.subscription.validTill === null) {
+      const userSub = isGreaterThan30Days(
+        // user.payments.subscription.validTill * 1000
+        1629340800000
+      );
+      if (!userSub) {
+        user.payments.subscription = {
+          validTill: null,
+          status: "expired",
+          plan: null,
+        };
+        await user.save();
+      }
+    }
+    */
+
     res.status(200).json({
       message: "User Found Successfully!!!",
       user,
+    });
+  } catch (err) {
+    generalPromiseError(err);
+    next(err);
+  }
+};
+
+exports.getResetPasswordLink = async (req, res, next) => {
+  const { email } = req.body;
+  crypto.randomBytes(32, async (err, buffer) => {
+    if (err) {
+      generalPromiseError(err);
+      next(err);
+    }
+    const token = buffer.toString("hex");
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        const error = new Error("No account with that email found.");
+        error.statusCode = 404;
+        throw error;
+      }
+      user.resetToken = token;
+      user.resetTokenExpiration = Date.now() + 3600000;
+      await user.save();
+      res.status(200).json({
+        message:
+          "Reset password link sent successfully, Please check your email.",
+        token,
+      });
+      transporter.sendMail({
+        to: email,
+        from: "help@vortaps.tech",
+        subject: "Password Reset",
+        html: `
+        <p>You requested a password reset</p> 
+        <p>Click this <a href="http://localhost:3000/reset/changePassword?resetToken=${token}">link</a> to set a new password.</p>
+        `,
+      });
+    } catch (err) {
+      generalPromiseError(err);
+      next(err);
+    }
+  });
+};
+
+exports.resetPassword = async (req, res, next) => {
+  const { password, token } = req.body;
+  try {
+    const user = await User.findOne({ resetToken: token });
+    if (!user) {
+      const error = new Error(
+        "Token invalid, Please reset the password again."
+      );
+      error.statusCode = 404;
+      throw error;
+    }
+    if (user.resetTokenExpiration < Date.now()) {
+      const error = new Error("Token Expired!!!");
+      error.statusCode = 404;
+      throw error;
+    }
+    const hashedPassword = await bcrypt.hash(password, 12);
+    user.password = hashedPassword;
+    user.resetToken = null;
+    user.resetTokenExpiration = null;
+    await user.save();
+    res.status(200).json({
+      status: "success",
+      message: "Password Reset Successfully!!!",
     });
   } catch (err) {
     generalPromiseError(err);

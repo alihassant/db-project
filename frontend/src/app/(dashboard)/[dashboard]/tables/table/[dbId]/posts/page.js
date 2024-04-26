@@ -8,7 +8,9 @@ import { usePathname } from "next/navigation";
 import axios from "axios";
 import getData from "@/app/api/table/tableData/[id]/route";
 import Link from "next/link";
+import { revalidateDataTag } from "@/app/actions";
 import Cookies from "js-cookie";
+import PostsTable from "@/components/dashboard/tables/PostsTable";
 
 let INITIAL_NEW_ENTRY = {
   dbId: "",
@@ -105,9 +107,12 @@ export default function Table() {
   async function handleImageUpload() {
     const data = new FormData();
     data.append("file", newEntry.image);
-    data.append("upload_preset", process.env.CLOUDINARY_UPLOAD_PRESET);
-    data.append("cloud_name", process.env.CLOUDINARY_CLOUD_NAME);
-    const response = await axios.post(process.env.CLOUDINARY_UPLOAD_URL, data);
+    //ml_default is my upload preset name
+    data.append("upload_preset", "ml_default");
+    //davfhdzxx is my personal cloud name
+    data.append("cloud_name", "davfhdzxx");
+    const url = "https://api.cloudinary.com/v1_1/davfhdzxx/image/upload";
+    const response = await axios.post(url, data);
     const images = {
       imageUrl: response.data.url,
       publicId: response.data.public_id,
@@ -150,6 +155,7 @@ export default function Table() {
       }
 
       getDb();
+      revalidateDataTag(posts);
 
       console.log("New Entry Added Successfully!!!");
     } catch (err) {
@@ -206,7 +212,7 @@ export default function Table() {
                   <div className="card-header py-3">
                     <Link
                       href={`/dashboard/tables/table/${dbId}`}
-                      className="text-primary m-0 fw-bold"
+                      className="text-primary m-0 fw-bold me-sm-3"
                       style={{
                         float: "left",
                         textDecoration: "none",
@@ -214,9 +220,9 @@ export default function Table() {
                     >
                       {db?.name}
                     </Link>
-                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div className="d-grid gap-2 d-sm-flex justify-content-sm-end">
                       <button
-                        className="btn btn-primary me-md-2 "
+                        className="btn btn-primary sm-col-12 "
                         style={{ color: "white" }}
                         type="button"
                         data-bs-toggle="modal"
@@ -227,7 +233,7 @@ export default function Table() {
                       </button>
 
                       <button
-                        className="btn btn-primary me-md-2 "
+                        className="btn btn-primary "
                         style={{ color: "white" }}
                         type="button"
                         onClick={handlePDF}
@@ -351,85 +357,7 @@ export default function Table() {
                     </div>
                     {/* new modal close */}
                   </div>
-                  <div className="card-body">
-                    <div className="row">
-                      <div className="col-md-6 text-nowrap">
-                        <div
-                          id="dataTable_length"
-                          className="dataTables_length"
-                          aria-controls="dataTable"
-                        >
-                          <label className="form-label">
-                            Show&nbsp;
-                            <select
-                              defaultValue={10}
-                              className="d-inline-block form-select form-select-sm"
-                            >
-                              <option value={10}>10</option>
-                              <option value={25}>25</option>
-                              <option value={50}>50</option>
-                              <option value={100}>100</option>
-                            </select>
-                            &nbsp;
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div
-                          className="text-md-end dataTables_filter"
-                          id="dataTable_filter"
-                        >
-                          <label className="form-label">
-                            <input
-                              type="search"
-                              className="form-control form-control-sm"
-                              aria-controls="dataTable"
-                              placeholder="Search"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="table-responsive table mt-2"
-                      id="dataTable"
-                      role="grid"
-                      aria-describedby="dataTable_info"
-                    >
-                      <table
-                        className="table table-striped my-0"
-                        id="dataTable"
-                      >
-                        <thead>
-                          <tr>
-                            <th>{tHeaders[0].tH1}</th>
-                            <th>{tHeaders[0].tH2}</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {posts.map((post) => {
-                            return (
-                              <tr key={post._id}>
-                                <td>{post.tData.tD1}</td>
-                                <td>{post.tData.tD2}</td>
-                                <td>{new Date(post.createdAt).toString()}</td>
-                                <td>
-                                  <Link
-                                    href={`/dashboard/tables/table/${dbId}/posts/${post._id}`}
-                                    className="btn btn-primary"
-                                  >
-                                    See More
-                                  </Link>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                  <PostsTable dbId={dbId} posts={posts} tHeaders={tHeaders} />
                 </div>
               )) || <Loading />}
         </div>

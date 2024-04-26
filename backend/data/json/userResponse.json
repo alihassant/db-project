@@ -1,0 +1,51 @@
+{
+  "message": "User Found Successfully!!!",
+  "user": {
+    "profilePic": {
+      "url": "https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg",
+      "publicId": "user"
+    },
+    "payments": {
+      "subscription": {
+        "subscriptionId": ""
+      },
+      "paymentMethod": {
+        "fullName": "",
+        "methodId": "",
+        "addedOn": "2024-03-27T23:04:53.356Z"
+      },
+      "customerId": ""
+    },
+    "subscription": {
+      "subscriptionId": ""
+    },
+    "_id": "6600cc2904f7c2c2fc1719c9",
+    "name": "Ali Hassan",
+    "email": "ali@vortaps.tech",
+    "username": "alihassant",
+    "password": "$2b$12$wbHPsHPQWj1MdJBVceHL3.19VFHJPzPi9A/r7AJgCrh4EsGYstzVS",
+    "defaultRole": "user",
+    "extraRole": "user",
+    "entries": [],
+    "databases": [
+      {
+        "dbId": "6600cdf5981486b45808a065",
+        "dbRole": "owner",
+        "_id": "6600cdf5981486b45808a06a"
+      },
+      {
+        "dbId": "6600cef7981486b45808a091",
+        "dbRole": "owner",
+        "_id": "6600cef8981486b45808a097"
+      }
+    ],
+    "createdAt": "2024-03-25T00:58:17.292Z",
+    "updatedAt": "2024-03-27T00:46:54.792Z",
+    "__v": 2,
+    "Subscription": {
+      "subscriptionId": ""
+    },
+    "currentPlan": "free",
+    "customerId": "cus_PoNOa8PwMaJYt8"
+  }
+}

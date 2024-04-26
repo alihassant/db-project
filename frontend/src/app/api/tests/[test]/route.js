@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 
 export async function GET(request) {
   const userId = await getDataFromToken(request);
-  const token = request.cookies.get("token")?.value;
   const res = await axios.get(`http://localhost:8080/api/auth/user/${userId}`, {
     headers: {
       Authorization: `Bearer ${token}`,

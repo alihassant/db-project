@@ -19,6 +19,8 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    resetToken: String,
+    resetTokenExpiration: Date,
     profilePic: {
       url: {
         type: String,
@@ -42,7 +44,25 @@ const userSchema = new Schema(
       type: String,
       required: true,
       default: "user",
-      emun: ["user", "teamLeader", "admin", "superAdmin"],
+      emun: ["user", "moderator", "admin", "superAdmin"],
+    },
+    currentPlan: {
+      type: String,
+      default: "free",
+    },
+    features: {
+      dbs: {
+        type: Number,
+        default: 3,
+      },
+      entries: {
+        type: Number,
+        default: 10,
+      },
+      members: {
+        type: Number,
+        default: 5,
+      },
     },
     entries: [
       {
@@ -59,6 +79,70 @@ const userSchema = new Schema(
         dbRole: {
           type: String,
         },
+      },
+    ],
+    payments: {
+      subscription: {
+        subscriptionId: {
+          type: String,
+          default: "",
+        },
+        validTill: Number,
+        startedOn: Number,
+        productId: String,
+        priceId: String,
+        status: String,
+      },
+
+      paymentMethod: {
+        fullName: {
+          type: String,
+          default: "",
+        },
+        methodId: {
+          type: String,
+          default: "",
+        },
+        addedOn: {
+          type: Date,
+          default: Date.now,
+        },
+        hasCard: {
+          type: Boolean,
+          default: false,
+        },
+        card: {
+          last4: String,
+          brand: String,
+          country: String,
+          exp_month: String,
+          exp_year: String,
+          funding: String,
+        },
+
+        address: {
+          postalCode: String,
+        },
+      },
+    },
+    subscription: {
+      subscriptionId: {
+        type: String,
+        default: "",
+      },
+      validTill: Number,
+      startedOn: Number,
+      productId: String,
+      priceId: String,
+    },
+    customerId: {
+      type: String,
+      default: "",
+    },
+    toDos: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "ToDo",
       },
     ],
   },

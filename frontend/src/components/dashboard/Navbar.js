@@ -1,4 +1,5 @@
 import { handleLogout } from "@/utils/auth";
+import Cookies from "js-cookie";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,9 +10,13 @@ const defaultImage =
   "https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg";
 
 export default function Navbar({ user, notifications }) {
+  const date = new Date().toDateString();
+
   const router = useRouter();
   const [unreadNotifications, setUnreadNotifications] = useState(notifications);
   const [unreadCount, setUnreadCount] = useState(0); // Track unread count
+
+  const token = Cookies.get("token");
 
   useEffect(() => {
     // Update unreadNotifications state when notifications prop changes
@@ -19,7 +24,8 @@ export default function Navbar({ user, notifications }) {
 
     // Check if there are new notifications
     const newNotifications = notifications.filter(
-      (notification) => !unreadNotifications.includes(notification)
+      (notification) =>
+        !unreadNotifications.includes(notification) && !notification.read
     );
 
     // Increment unread count if there are new notifications
@@ -32,10 +38,24 @@ export default function Navbar({ user, notifications }) {
     handleLogout();
     router.push("/login");
   };
+  // console.log("notifications", notifications);
 
-  const handleNotificationsClick = () => {
+  const handleNotificationsClick = async () => {
     // Reset unread count to zero
-    setUnreadCount(0);
+    try {
+      setUnreadCount(0);
+      const url = `http://localhost:8080/api/user/markNotificationsRead`;
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -49,7 +69,7 @@ export default function Navbar({ user, notifications }) {
           >
             <i className="fa fa-bars " />
           </button>
-          <form className="d-none d-sm-inline-block me-auto ms-md-3 my-2 my-md-0 mw-100 navbar-search">
+          {/* <form className="d-none d-sm-inline-block me-auto ms-md-3 my-2 my-md-0 mw-100 navbar-search">
             <div className="input-group">
               <input
                 className="bg-light form-control border-0 small"
@@ -69,7 +89,10 @@ export default function Navbar({ user, notifications }) {
                 </svg>
               </button>
             </div>
-          </form>
+          </form> */}
+          <p className="d-none d-sm-inline-block me-auto ms-md-3 my-2 my-md-0">
+            {date}
+          </p>
           <ul className="navbar-nav flex-nowrap ms-auto">
             {/* <li className="nav-item dropdown d-sm-none no-arrow">
               <a

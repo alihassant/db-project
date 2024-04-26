@@ -10,13 +10,14 @@ const Post = require("../../models/postData");
 const User = require("../../models/user");
 const Database = require("../../models/database");
 const Notification = require("../../models/notification");
+const plans = require("../../config/stripe");
 
 const transporter = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
   auth: {
-    user: "ee3c6090ef79a8",
-    pass: "12604643b9ff65",
+    user: process.env.EMAIL_AUTH_USER,
+    pass: process.env.EMAIL_AUTH_PASS,
   },
 });
 
@@ -34,7 +35,15 @@ const errorMessageStatus = (errorMessage, errorStatusCode) => {
 
 exports.createDatabase = async (req, res, next) => {
   // const { userId, name, tH1, tH2, tH3, tH4, tH5, tH6 } = req.body;
-  const { userId, name, totalHeaders, media, ...tHeaders } = req.body;
+  const {
+    userId,
+    name,
+    totalHeaders,
+    media,
+    emails,
+    notifications,
+    ...tHeaders
+  } = req.body;
 
   try {
     // General error handling for validation
@@ -52,6 +61,20 @@ exports.createDatabase = async (req, res, next) => {
       throw error;
     }
 
+    // finding user
+    const user = await User.findById(userId);
+
+    const plan = plans.find((plan) => plan.slug === user.currentPlan);
+
+    const checkRemainindDbs = () => user.databases.length > plan.dbs;
+
+    if (checkRemainindDbs()) {
+      errorMessageStatus(
+        "You have reached the limit of databases for your current plan.",
+        403
+      );
+    }
+
     // Checking if the database already exists with the same name
     const checkAvailability = await Database.findOne({ name });
     if (checkAvailability) {
@@ -67,6 +90,8 @@ exports.createDatabase = async (req, res, next) => {
       name,
       totalHeaders,
       media,
+      emails,
+      notifications,
       tHeaders: [
         {
           ...tHeaders,
@@ -76,9 +101,6 @@ exports.createDatabase = async (req, res, next) => {
 
     // Saving the new database
     const result = await database.save();
-
-    // finding user
-    const user = await User.findById(userId);
 
     result.users.push({
       userId,
@@ -539,6 +561,15 @@ exports.addNewMember = async (req, res, next) => {
     const user = await User.findById(userId);
     if (!user) {
       errorMessageStatus("User not found.", 404);
+    }
+
+    const userPlan = plans.find((p) => p.slug === user.currentPlan);
+
+    if (database.users.length >= userPlan.users) {
+      errorMessageStatus(
+        "You have reached the maximum number of users for your current plan.",
+        400
+      );
     }
 
     // Check if the user has authorization (owner, admin, or teamLeader) in the specified database

@@ -9,6 +9,7 @@ import axios from "axios";
 import getData from "@/app/api/table/tableData/[id]/route";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import { revalidateDataTag } from "@/app/actions";
 
 const INITIAL_NEW_USER = {
   email: "",
@@ -89,6 +90,7 @@ export default function Table() {
         },
       });
       console.log("New User Added Successfully!!!");
+      revalidateDataTag(db);
     } catch (err) {
       console.log(err);
     }

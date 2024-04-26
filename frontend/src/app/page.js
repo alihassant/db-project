@@ -88,28 +88,15 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="fw-bold">Title</h4>
+                    <h4 className="fw-bold">Tailored to Your Needs</h4>
                     <p className="text-muted">
-                      Erat netus est hendrerit, nullam et quis ad cras porttitor
-                      iaculis. Bibendum vulputate cras aenean.
+                      Whether you are a small startup or a large enterprise,
+                      Vortaps offers subscription plans tailored to your
+                      specific requirements. Choose from our range of plans to
+                      access advanced features such as real-time notifications,
+                      PDF generation, and more, all designed to enhance your
+                      data management experience.
                     </p>
-                    <button className="btn btn-sm px-0" type="button">
-                      Learn More&nbsp;
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="1em"
-                        height="1em"
-                        fill="currentColor"
-                        viewBox="0 0 16 16"
-                        className="bi bi-arrow-right"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
-                        />
-                      </svg>
-                      <br />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -120,44 +107,31 @@ export default function Home() {
                   <div className="bs-icon-lg bs-icon-rounded bs-icon-secondary d-flex flex-shrink-0 justify-content-center align-items-center d-inline-block mb-4 bs-icon">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="1em"
-                      height="1em"
+                      width="24"
+                      height="24"
                       viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
                       fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="icon icon-tabler icon-tabler-school"
+                      stroke="currentColor"
+                      stroke-width={2}
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      className="icon icon-tabler icons-tabler-outline icon-tabler-shield-lock"
                     >
                       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M22 9l-10 -4l-10 4l10 4l10 -4v6" />
-                      <path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4" />
+                      <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" />
+                      <path d="M12 11m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                      <path d="M12 12l0 2.5" />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="fw-bold">Title</h4>
+                    <h4 className="fw-bold">Robust Security Measures</h4>
                     <p className="text-muted">
-                      Erat netus est hendrerit, nullam et quis ad cras porttitor
-                      iaculis. Bibendum vulputate cras aenean.
+                      At Vortaps, the security of your data is our top priority.
+                      We employ state-of-the-art encryption protocols and
+                      industry best practices to safeguard your information at
+                      every step. Rest assured, your data remains secure and
+                      protected with Vortaps.
                     </p>
-                    <button className="btn btn-sm px-0" type="button">
-                      Learn More&nbsp;
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="1em"
-                        height="1em"
-                        fill="currentColor"
-                        viewBox="0 0 16 16"
-                        className="bi bi-arrow-right"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
-                        />
-                      </svg>
-                      <br />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -168,44 +142,31 @@ export default function Home() {
                   <div className="bs-icon-lg bs-icon-rounded bs-icon-secondary d-flex flex-shrink-0 justify-content-center align-items-center d-inline-block mb-4 bs-icon">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="1em"
-                      height="1em"
+                      width="24"
+                      height="24"
                       viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
                       fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="icon icon-tabler icon-tabler-school"
+                      stroke="currentColor"
+                      stroke-width={2}
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-tabler icons-tabler-outline icon-tabler-help"
                     >
                       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M22 9l-10 -4l-10 4l10 4l10 -4v6" />
-                      <path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4" />
+                      <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+                      <path d="M12 17l0 .01" />
+                      <path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4" />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="fw-bold">Title</h4>
+                    <h4 className="fw-bold">Dedicated Support</h4>
                     <p className="text-muted">
-                      Erat netus est hendrerit, nullam et quis ad cras porttitor
-                      iaculis. Bibendum vulputate cras aenean.
+                      Have questions or need assistance? Our dedicated support
+                      team is here to help. Whether you are a seasoned user or
+                      just getting started, we are committed to providing you
+                      with the assistance you need to make the most of our
+                      platform.
                     </p>
-                    <button className="btn btn-sm px-0" type="button">
-                      Learn More&nbsp;
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="1em"
-                        height="1em"
-                        fill="currentColor"
-                        viewBox="0 0 16 16"
-                        className="bi bi-arrow-right"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"
-                        />
-                      </svg>
-                      <br />
-                    </button>
                   </div>
                 </div>
               </div>

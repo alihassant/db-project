@@ -7,12 +7,13 @@ const User = require("../models/user");
 const Post = require("../models/postData");
 const Database = require("../models/database");
 const Notification = require("../models/notification");
+const ToDo = require("../models/toDos");
 
 // cloudinary setup
 cloudinary.config({
-  cloud_name: "davfhdzxx",
-  api_key: "336338634814583",
-  api_secret: "QYUCawOjsAezotGCgtQktTXZfao",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const generalPromiseError = (err) => {
@@ -250,10 +251,122 @@ exports.getNotifications = async (req, res, next) => {
     if (notifications.length === 0) {
       errorMessageStatus("No Notifications Found!!!", 404);
     }
+    // io.getIO().emit("notifications", {
+    //   action: "get",
+    //   message: "Notifications Fetched Successfully!!!",
+    //   notifications,
+    // });
 
     res.status(200).json({
       message: "Notifications Fetched Successfully!!!",
       notifications,
+    });
+  } catch (err) {
+    generalPromiseError(err);
+    next(err);
+  }
+};
+
+exports.postToDo = async (req, res, next) => {
+  const { todo, description, status, priority, dueDate, userId } = req.body;
+  try {
+    const newToDo = new ToDo({
+      todo,
+      description,
+      status,
+      priority,
+      dueDate,
+      userId,
+    });
+    const result = await newToDo.save();
+
+    const user = await User.findById(userId);
+    user.toDos.push(result._id);
+    await user.save();
+
+    res.status(201).json({
+      message: "To Do Created Successfully!!!",
+      result,
+    });
+  } catch (err) {
+    generalPromiseError(err);
+    next(err);
+  }
+};
+
+exports.changeToDoStatus = async (req, res, next) => {
+  const { toDoId, status } = req.body;
+  try {
+    const toDo = await ToDo.findById(toDoId);
+    if (!toDo) {
+      errorMessageStatus("Could not find to do.", 404);
+    }
+    toDo.status = status;
+    const result = await toDo.save();
+    res.status(200).json({
+      message: "To Do Status Updated Successfully!!!",
+      result,
+    });
+  } catch (err) {
+    generalPromiseError(err);
+    next(err);
+  }
+};
+
+exports.getTodos = async (req, res, next) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId).populate("toDos");
+    if (!user) {
+      errorMessageStatus("Could not find user.", 404);
+    }
+    const todos = user.toDos;
+    if (todos.length === 0) {
+      errorMessageStatus("No To Dos Found!!!", 404);
+    }
+    res.status(200).json({
+      message: "To Dos Fetched Successfully!!!",
+      todos,
+    });
+  } catch (err) {
+    generalPromiseError(err);
+    next(err);
+  }
+};
+
+exports.deleteTodo = async (req, res, next) => {
+  const { todoId, userId } = req.body;
+  try {
+    const toDo = await ToDo.findById(todoId);
+    if (!toDo) {
+      errorMessageStatus("Could not find to do.", 404);
+    }
+    const user = await User.findById(userId);
+    user.toDos.pull(todoId);
+    await user.save();
+    await ToDo.findByIdAndDelete(todoId);
+    res.status(200).json({
+      message: "To Do Deleted Successfully!!!",
+    });
+  } catch (err) {
+    generalPromiseError(err);
+    next(err);
+  }
+};
+
+exports.markNotificationsRead = async (req, res, next) => {
+  const { userId } = req;
+  try {
+    const notifications = await Notification.find({ userId });
+    if (notifications.length === 0) {
+      errorMessageStatus("No Notifications Found!!!", 404);
+    }
+    notifications.forEach(async (notification) => {
+      notification.read = true;
+      await notification.save();
+    });
+    res.status(200).json({
+      message: "Notifications Marked Read Successfully!!!",
     });
   } catch (err) {
     generalPromiseError(err);

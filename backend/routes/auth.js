@@ -27,8 +27,14 @@ router.post(
   authController.signup
 );
 
-router.post("/login",  authController.login);
+router.post("/login", authController.login);
 
-router.get("/user/:userId", isAuth, authController.getUser);
+// router.get("/user/:userId", isAuth, authController.getUser);
+
+router.get("/user/:userId", authController.getUser);
+
+router.post("/getResetPasswordLink", authController.getResetPasswordLink);
+
+router.post("/resetPassword", authController.resetPassword);
 
 module.exports = router;

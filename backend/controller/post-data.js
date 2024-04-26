@@ -9,9 +9,9 @@ const Notification = require("../models/notification");
 
 // cloudinary setup
 cloudinary.config({
-  cloud_name: "davfhdzxx",
-  api_key: "336338634814583",
-  api_secret: "QYUCawOjsAezotGCgtQktTXZfao",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const generalPromiseError = (err) => {
@@ -55,21 +55,31 @@ exports.postData = async (req, res, next) => {
     creator = user;
     user.entries.push(post);
 
-    // Send notifications to users within the database
-    const databaseUsers = await User.find({ "databases.dbId": dbId });
-    for (const user of databaseUsers) {
-      const notification = Notification.create({
-        userId: user._id,
-        message: `New post added in ${db.name} database.`,
-      });
-      const userId = user._id.toString();
-      // Emit Socket.IO notification to the user
-      io.emitToUser(userId, "notification", {
-        action: "create",
-        message: `New post added in ${db.name} database.`,
-        dbId,
-        createdAt: new Date().toISOString(),
-      });
+    if (db.notifications) {
+      // Send notifications to users within the database
+      const databaseUsers = await User.find({ "databases.dbId": dbId });
+      for (const user of databaseUsers) {
+        const notification = Notification.create({
+          userId: user._id,
+          message: `New post added in ${db.name} database.`,
+        });
+        const userId = user._id.toString();
+        // Emit Socket.IO notification to the user
+        io.emitToUser(userId, "notification", {
+          action: "create",
+          message: `New post added in ${db.name} database.`,
+          dbId,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    if (db.emails) {
+      // Send email notifications to users within the database
+      const databaseUsers = await User.find({ "databases.dbId": dbId });
+      for (const user of databaseUsers) {
+        // Send email to user
+      }
     }
 
     await user.save();
@@ -153,20 +163,30 @@ exports.updateData = async (req, res, next) => {
     // console.log(post);
 
     // Send notifications to users within the database
-    const databaseUsers = await User.find({ "databases.dbId": dbId });
-    for (const user of databaseUsers) {
-      await Notification.create({
-        userId: user._id,
-        message: `A Post was just updated in ${db.name}.`,
-      });
-      const userId = user._id.toString();
-      // Emit Socket.IO notification to the user
-      io.emitToUser(userId, "notification", {
-        action: "update",
-        message: `A Post was just updated in ${db.name} database.`,
-        dbId,
-        createdAt: new Date().toISOString(),
-      });
+    if (db.notifications) {
+      const databaseUsers = await User.find({ "databases.dbId": dbId });
+      for (const user of databaseUsers) {
+        await Notification.create({
+          userId: user._id,
+          message: `A Post was just updated in ${db.name}.`,
+        });
+        const userId = user._id.toString();
+        // Emit Socket.IO notification to the user
+        io.emitToUser(userId, "notification", {
+          action: "update",
+          message: `A Post was just updated in ${db.name} database.`,
+          dbId,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    // Send email notifications to users within the database
+    if (db.emails) {
+      const databaseUsers = await User.find({ "databases.dbId": dbId });
+      for (const user of databaseUsers) {
+        // Send email to user
+      }
     }
 
     const result = await post.save();

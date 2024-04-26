@@ -5,22 +5,29 @@ const isAuth = require("../middleware/is-auth");
 
 const router = express.Router();
 
-router.post("/deleteUser", isAuth, superAdminController.deleteUser);
+router.post("/deleteUser", superAdminController.deleteUser);
 
-router.get("/getDatabases", isAuth, superAdminController.getDatabases);
+router.get("/getDatabases", superAdminController.getDatabases);
 
-router.get("/getAllUsers", isAuth, superAdminController.getAllUsers);
+router.get("/getAllUsers", superAdminController.getAllUsers);
 
-router.get(
-  "/getUsersNumber/:userId",
-  isAuth,
-  superAdminController.getUsersNumber
+router.get("/getUsersNumber/:userId", superAdminController.getUsersNumber);
+
+router.get("/getPostsNumber/:userId", superAdminController.getPostsNumber);
+
+router.get("/getUserDetails/:userId", superAdminController.getUserDetails);
+
+router.get("/getUserDatabase/:dbId", superAdminController.getUserDatabase);
+
+router.patch("/changeUserDetails", superAdminController.changeUserDetails);
+
+router.patch("/changeUserPassword", superAdminController.changeUserPassword);
+
+router.patch(
+  "/changeTableHeaders/:dbId",
+  superAdminController.changeTableHeaders
 );
 
-router.get(
-  "/getPostsNumber/:userId",
-  isAuth,
-  superAdminController.getPostsNumber
-);
+router.patch("/changeTableDetails", superAdminController.changeTableDetails);
 
 module.exports = router;

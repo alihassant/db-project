@@ -4,24 +4,22 @@ import "@/app/dashboard.min.css";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 import Loading from "@/components/dashboard/Loading";
-import Link from "next/link";
 import axios from "axios";
 import Cookies from "js-cookie";
+import DbsTable from "@/components/dashboard/tables/DbsTable";
 
 export default function Table() {
   // getting and setting the databases
   const [dbs, setDb] = useState();
+  // const [loading, setLoading] = useState(false);
   const [error, setError] = useState();
 
   const token = Cookies.get("token");
+  console.log();
 
   const getDbs = async () => {
     try {
-      const response = await axios.get("/api/database/userDatabases", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get("/api/database/userDatabases");
       if (response) {
         const { dbs } = response.data;
         if (dbs.length === 0) {
@@ -75,86 +73,7 @@ export default function Table() {
               <div className="card-header py-3">
                 <p className="text-primary m-0 fw-bold">Database Info</p>
               </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-md-6 text-nowrap">
-                    <div
-                      id="dataTable_length"
-                      className="dataTables_length"
-                      aria-controls="dataTable"
-                    >
-                      <label className="form-label">
-                        Show&nbsp;
-                        <select
-                          defaultValue={10}
-                          className="d-inline-block form-select form-select-sm"
-                        >
-                          <option value={10}>10</option>
-                          <option value={25}>25</option>
-                          <option value={50}>50</option>
-                          <option value={100}>100</option>
-                        </select>
-                        &nbsp;
-                      </label>
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div
-                      className="text-md-end dataTables_filter"
-                      id="dataTable_filter"
-                    >
-                      <label className="form-label">
-                        <input
-                          type="search"
-                          className="form-control form-control-sm"
-                          aria-controls="dataTable"
-                          placeholder="Search"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="table-responsive table mt-2"
-                  id="dataTable"
-                  role="grid"
-                  aria-describedby="dataTable_info"
-                >
-                  <table className="table my-0" id="dataTable">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Posts</th>
-                        <th>Users</th>
-                        <th>Created At</th>
-                        <th>More</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dbs.map((db) => {
-                        return (
-                          <tr key={db._id}>
-                            <td>{db.dbId.name}</td>
-                            <td>{db.dbRole}</td>
-                            <td>{db.dbId.posts.length}</td>
-                            <td>{db.dbId.users.length}</td>
-                            <td>{new Date(db.dbId.createdAt).toString()}</td>
-                            <td>
-                              <Link
-                                href={`/dashboard/tables/table/${db.dbId._id}`}
-                                className="btn btn-primary"
-                              >
-                                More
-                              </Link>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <DbsTable dbs={dbs} />
             </div>
           )) ||
             (error && <h1>{error}</h1>) || <Loading />}

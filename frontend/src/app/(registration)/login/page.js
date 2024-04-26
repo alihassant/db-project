@@ -15,11 +15,13 @@ export default function Login() {
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(INITIAL_USER);
+  const [rememberMe, setRememberMe] = useState(false);
 
   function handleChange(e) {
     const { name, value } = e.target;
     setUser((prev) => ({ ...prev, [name]: value }));
   }
+  // console.log(user);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -29,9 +31,11 @@ export default function Login() {
       const url = `http://localhost:8080/api/auth/login`;
       const payload = { ...user };
       const response = await axios.post(url, payload);
-      handleLogin(response.data.token);
+      handleLogin(response.data.token, rememberMe);
       window.location.pathname = "/dashboard";
+      // console.log(response.data);
     } catch (err) {
+      // console.log(err.response.data.message);
       if (err.message === "Network Error") {
         setError("Network Error: Please check your internet connection.");
       }
@@ -67,7 +71,7 @@ export default function Login() {
                       <div className="text-center">
                         <h4 className="text-dark mb-4">Welcome Back!</h4>
                       </div>
-                      <form className="user" onSubmit={handleSubmit}>
+                      <form className="user mt-md-5" onSubmit={handleSubmit}>
                         {error && (
                           <div className="alert alert-danger" role="alert">
                             {error}
@@ -101,6 +105,8 @@ export default function Login() {
                                 className="form-check-input custom-control-input"
                                 type="checkbox"
                                 id="formCheck-1"
+                                name="rememberMe"
+                                onChange={() => setRememberMe(!rememberMe)}
                               />
                               <label
                                 className="form-check-label custom-control-label"
@@ -112,7 +118,7 @@ export default function Login() {
                           </div>
                         </div>
                         <button
-                          className="btn btn-primary d-block btn-user w-100"
+                          className="btn btn-primary d-block btn-user w-100 my-md-5"
                           type="submit"
                         >
                           {(loading && (
@@ -128,28 +134,13 @@ export default function Login() {
                             "Login"}
                         </button>
                         <hr />
-                        <a
-                          className="btn btn-primary d-block btn-google btn-user w-100 mb-2"
-                          role="button"
-                        >
-                          <i className="fab fa-google" />
-                          &nbsp; Login with Google
-                        </a>
-                        <a
-                          className="btn btn-primary d-block btn-facebook btn-user w-100"
-                          role="button"
-                        >
-                          <i className="fab fa-facebook-f" />
-                          &nbsp; Login with Facebook
-                        </a>
-                        <hr />
                       </form>
-                      <div className="text-center">
-                        <a className="small" href="#">
+                      <div className="text-center mt-md-5">
+                        <a className="small" href="/reset">
                           Forgot Password?
                         </a>
                       </div>
-                      <div className="text-center">
+                      <div className="text-center mb-md-5">
                         <a className="small" href="/signup">
                           Create an Account!
                         </a>

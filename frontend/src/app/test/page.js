@@ -1,158 +1,109 @@
 "use client";
 
-import axios from "axios";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import "./App.css";
 
-// const INITIAL_DATA = {
-//   name: "",
-//   email: "",
-//   password: "",
-//   username: "",
-// };
+const ProductDisplay = () => (
+  <section>
+    <div className="product">
+      <Logo />
+      <div className="description">
+        <h3>Starter plan</h3>
+        <h5>$20.00 / month</h5>
+      </div>
+    </div>
+    <form action="/create-checkout-session" method="POST">
+      {/* Add a hidden field with the lookup_key of your Price */}
+      <input type="hidden" name="lookup_key" value="basic" />
+      <button id="checkout-and-portal-button" type="submit">
+        Checkout
+      </button>
+    </form>
+  </section>
+);
 
-// export default function Test() {
-//   const [data, setData] = useState(INITIAL_DATA);
-
-//   function handleChange(e) {
-//     const { name, value } = e.target;
-//     setData((prev) => ({ ...prev, [name]: value }));
-//   }
-//   // console.log(db);
-
-//   async function handleSubmit(e) {
-//     e.preventDefault();
-//     try {
-//       const url = `http://localhost:8080/api/db/test`;
-//       const payload = { ...data };
-//       const response = await axios.post(url, payload);
-//       // console.log(response.data);
-//     } catch (err) {
-//       console.log(err);
-//     }
-//   }
-
-//   return (
-//     <>
-//       <form onSubmit={handleSubmit}>
-//         <label>
-//           Enter your name:
-//           <input type="text" name="name" onChange={handleChange} />
-//         </label>
-//         <label>
-//           Enter your email:
-//           <input type="text" name="email" onChange={handleChange} />
-//         </label>
-//         <label>
-//           Enter your password:
-//           <input type="text" name="password" onChange={handleChange} />
-//         </label>
-//         <label>
-//           Enter your password:
-//           <input type="text" name="username" onChange={handleChange} />
-//         </label>
-//         <button className="btn btn-primary btn-sm" type="submit">
-//           Create Database
-//         </button>
-//       </form>
-//     </>
-//   );
-// }
-
-const INITIAL_DATA = {
-  name: "newDB",
-  userId: "1",
-};
-
-const MAX_NUMBER = 10;
-
-export default function Test() {
-  const [data, setData] = useState(INITIAL_DATA);
-  const [fieldsNum, setFieldsNum] = useState(0);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setData((prev) => ({ ...prev, [name]: value }));
-  }
-
-  function handleFieldsNum(e) {
-    const { name, value } = e.target;
-    setFieldsNum(value);
-    setData((prev) => ({ ...prev, [name]: value }));
-  }
-
-  console.log(data);
-  console.log(fieldsNum);
-
+const SuccessDisplay = ({ sessionId }) => {
   return (
-    <>
-      <div className="col">
-        <div
-          className="row mx-6"
-          style={{ maxWidth: "600px", marginLeft: "200px", marginTop: "100px" }}
-        >
-          <h1>Create a new database</h1>
-          <form>
-            <div className="mb-3">
-              <label htmlFor="exampleInputEmail1" className="form-label">
-                Number of fields
-              </label>
-              <input
-                className="form-control"
-                id="exampleInputEmail1"
-                aria-describedby="emailHelp"
-                onChange={handleFieldsNum}
-                name="fieldsNum"
-              />
-            </div>
-
-            {(fieldsNum <= MAX_NUMBER &&
-              Array.from({ length: fieldsNum }).map((_, index) => (
-                <div key={index} className="mb-3" id={index}>
-                  <label htmlFor="exampleInputEmail1" className="form-label">
-                    Field {index + 1}
-                  </label>
-                  <input
-                    className="form-control"
-                    id={index}
-                    name={`tH${index + 1}`}
-                    aria-describedby="emailHelp"
-                    onChange={handleChange}
-                  />
-                </div>
-              ))) || (
-              <div>Number of fields should be less than {MAX_NUMBER}</div>
-            )}
-
-            <div className="mb-3">
-              <label htmlFor="exampleInputPassword1" className="form-label">
-                Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="exampleInputPassword1"
-              />
-            </div>
-            <button type="submit" className="btn btn-primary">
-              Submit
-            </button>
-          </form>
+    <section>
+      <div className="product Box-root">
+        <Logo />
+        <div className="description Box-root">
+          <h3>Subscription to starter plan successful!</h3>
         </div>
       </div>
-    </>
+      <form action="/create-portal-session" method="POST">
+        <input
+          type="hidden"
+          id="session-id"
+          name="session_id"
+          value={sessionId}
+        />
+        <button id="checkout-and-portal-button" type="submit">
+          Manage your billing information
+        </button>
+      </form>
+    </section>
   );
+};
+
+const Message = ({ message }) => (
+  <section>
+    <p>{message}</p>
+  </section>
+);
+
+export default function App() {
+  let [message, setMessage] = useState("");
+  let [success, setSuccess] = useState(false);
+  let [sessionId, setSessionId] = useState("");
+
+  useEffect(() => {
+    // Check to see if this is a redirect back from Checkout
+    const query = new URLSearchParams(window.location.search);
+
+    if (query.get("success")) {
+      setSuccess(true);
+      setSessionId(query.get("session_id"));
+    }
+
+    if (query.get("canceled")) {
+      setSuccess(false);
+      setMessage(
+        "Order canceled -- continue to shop around and checkout when you're ready."
+      );
+    }
+  }, [sessionId]);
+
+  if (!success && message === "") {
+    return <ProductDisplay />;
+  } else if (success && sessionId !== "") {
+    return <SuccessDisplay sessionId={sessionId} />;
+  } else {
+    return <Message message={message} />;
+  }
 }
 
-// {Array.from({ length: fieldsNum }).map((_, index) => (
-//   <div key={index} className="mb-3">
-//     <label htmlFor="exampleInputEmail1" className="form-label">
-//       Field {index + 1}
-//     </label>
-//     <input
-//       type="email"
-//       className="form-control"
-//       id="exampleInputEmail1"
-//       aria-describedby="emailHelp"
-//     />
-//   </div>
-// ))}
+const Logo = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="14px"
+    height="16px"
+    viewBox="0 0 14 16"
+    version="1.1"
+  >
+    <defs />
+    <g id="Flow" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+      <g
+        id="0-Default"
+        transform="translate(-121.000000, -40.000000)"
+        fill="#E184DF"
+      >
+        <path
+          d="M127,50 L126,50 C123.238576,50 121,47.7614237 121,45 C121,42.2385763 123.238576,40 126,40 L135,40 L135,56 L133,56 L133,42 L129,42 L129,56 L127,56 L127,50 Z M127,48 L127,42 L126,42 C124.343146,42 123,43.3431458 123,45 C123,46.6568542 124.343146,48 126,48 L127,48 Z"
+          id="Pilcrow"
+        />
+      </g>
+    </g>
+  </svg>
+);

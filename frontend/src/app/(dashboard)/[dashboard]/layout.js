@@ -11,6 +11,7 @@ import Navbar from "@/components/dashboard/Navbar";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Script from "next/script";
 import axios from "axios";
+import { revalidateDataTag } from "@/app/actions";
 import Cookies from "js-cookie";
 
 export default function DashboardLayout({ children }) {
@@ -90,7 +91,9 @@ export default function DashboardLayout({ children }) {
           data.action === "delete" ||
           data.action === "add" ||
           data.action === "remove" ||
-          data.action === "changeRole"
+          data.action === "changeRole" ||
+          data.action === "cancelSubscription" ||
+          data.action === "changeSubscription"
         ) {
           setUserNotifications((prevNotifications) => [
             ...prevNotifications,
@@ -108,13 +111,16 @@ export default function DashboardLayout({ children }) {
         socket.disconnect();
       };
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]); // Run effect when user data changes
 
   useEffect(() => {
     if (notification) {
       toast(notification);
-      revalidateDataTag("notifications");
+      revalidateDataTag(userNotifications);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notification]);
 
   return (
@@ -142,8 +148,12 @@ export default function DashboardLayout({ children }) {
                 {notification && (
                   <div className="mt-6">
                     <Toaster
-                      position="top-middle"
+                      position="bottom-right"
                       toastOptions={{
+                        style: {
+                          background: "#7AA2E3",
+                          color: "#F8F6E3",
+                        },
                         classNames: {
                           marginTop: "500px",
                         },

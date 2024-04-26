@@ -19,6 +19,8 @@ export default function Profile() {
       if (response) {
         const userData = await response.json();
         const { user } = userData;
+        // console.log(user);
+        // const user = { ...userData };
         if (user) {
           setUser(user);
         }
@@ -31,6 +33,7 @@ export default function Profile() {
   useEffect(() => {
     getUser();
   }, []);
+  // console.log(user.name);
   return (
     <>
       {(user && (

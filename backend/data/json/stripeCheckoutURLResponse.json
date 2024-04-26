@@ -1,0 +1,81 @@
+{
+  "success": true,
+  "session": {
+    "id": "cs_test_a1fx2peGuB6POSlam14g3rBhrPHvHmZZuFGnyOfy46wwEoBEZAkwIFje0c",
+    "object": "checkout.session",
+    "after_expiration": null,
+    "allow_promotion_codes": null,
+    "amount_subtotal": 5000,
+    "amount_total": 5000,
+    "automatic_tax": {
+      "enabled": false,
+      "liability": null,
+      "status": null
+    },
+    "billing_address_collection": null,
+    "cancel_url": "http://localhost:3000/dashboard",
+    "client_reference_id": null,
+    "client_secret": null,
+    "consent": null,
+    "consent_collection": null,
+    "created": 1711500821,
+    "currency": "usd",
+    "currency_conversion": null,
+    "custom_fields": [],
+    "custom_text": {
+      "after_submit": null,
+      "shipping_address": null,
+      "submit": null,
+      "terms_of_service_acceptance": null
+    },
+    "customer": "cus_PoNOa8PwMaJYt8",
+    "customer_creation": null,
+    "customer_details": {
+      "address": null,
+      "email": "ali@vortaps.tech",
+      "name": null,
+      "phone": null,
+      "tax_exempt": "none",
+      "tax_ids": null
+    },
+    "customer_email": null,
+    "expires_at": 1711587221,
+    "invoice": null,
+    "invoice_creation": null,
+    "livemode": false,
+    "locale": null,
+    "metadata": {},
+    "mode": "subscription",
+    "payment_intent": null,
+    "payment_link": null,
+    "payment_method_collection": "always",
+    "payment_method_configuration_details": null,
+    "payment_method_options": {
+      "card": {
+        "request_three_d_secure": "automatic"
+      }
+    },
+    "payment_method_types": ["card"],
+    "payment_status": "unpaid",
+    "phone_number_collection": {
+      "enabled": false
+    },
+    "recovered_from": null,
+    "setup_intent": null,
+    "shipping_address_collection": null,
+    "shipping_cost": null,
+    "shipping_details": null,
+    "shipping_options": [],
+    "status": "open",
+    "submit_type": null,
+    "subscription": null,
+    "success_url": "http://localhost:3000/dashboard",
+    "total_details": {
+      "amount_discount": 0,
+      "amount_shipping": 0,
+      "amount_tax": 0
+    },
+    "ui_mode": "hosted",
+    "url": "https://checkout.stripe.com/c/pay/cs_test_a1fx2peGuB6POSlam14g3rBhrPHvHmZZuFGnyOfy46wwEoBEZAkwIFje0c#fidkdWxOYHwnPyd1blpxYHZxWjA0Sk1mRzVPU11rNWI2Umc3YzZiSD08V1Awa1w2d0w3NFZ8ZG52MUExRFdOTUFoQ2YzVHMzdHFvamEzVmJnczczYDRfQkpcT3E8YUc2cE5Wdj1JREJ1SDZENTVqc05KY3IxaicpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl"
+  }
+}

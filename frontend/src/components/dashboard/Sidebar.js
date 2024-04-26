@@ -1,5 +1,4 @@
 import { handleLogout } from "@/utils/auth";
-import axios from "axios";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
@@ -92,6 +91,16 @@ export default function Sidebar({ user }) {
                 href="/dashboard/tables"
               >
                 <span style={{ fontSize: 16 }}>Tables</span>
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${
+                  pathname === "/dashboard/todo" ? "active" : ""
+                }`}
+                href="/dashboard/todo"
+              >
+                <span style={{ fontSize: 16 }}>To-Do</span>
               </Link>
             </li>
             <li className="nav-item">

@@ -8,6 +8,7 @@ import Image from "next/image";
 import getData from "@/app/api/table/tableData/[id]/route";
 import Link from "next/link";
 import Cookies from "js-cookie";
+// import { useRouter } from "next/navigation";
 
 const INITIAL_UPDATE_ENTRY = {
   dbId: "",
@@ -55,6 +56,7 @@ export default function Post({ params }) {
           },
         }
       );
+      // console.log(response.data);
       if (response) {
         const { post } = response.data;
         const { tData } = post;
@@ -136,9 +138,12 @@ export default function Post({ params }) {
   async function handleImageUpload() {
     const data = new FormData();
     data.append("file", updatedEntry.images);
-    data.append("upload_preset", process.env.CLOUDINARY_UPLOAD_PRESET);
-    data.append("cloud_name", process.env.CLOUDINARY_CLOUD_NAME);
-    const response = await axios.post(process.env.CLOUDINARY_UPLOAD_URL, data);
+    //ml_default is my upload preset name
+    data.append("upload_preset", "ml_default");
+    //davfhdzxx is my personal cloud name
+    data.append("cloud_name", "davfhdzxx");
+    const url = "https://api.cloudinary.com/v1_1/davfhdzxx/image/upload";
+    const response = await axios.post(url, data);
     const images = {
       url: response.data.url,
       publicId: response.data.public_id,
@@ -180,9 +185,11 @@ export default function Post({ params }) {
         console.log("Entry Updated Successfully!!!");
       }
 
+      // console.log(response.data);
     } catch (err) {
       setSuccessMessage(null);
       setError(err.response.data.message);
+      // console.log(err);
     } finally {
       setLoading(false);
     }
@@ -197,6 +204,7 @@ export default function Post({ params }) {
       setLoading(true);
       setError(null);
 
+      // await handleRemoveImage();
 
       const url = `http://localhost:8080/api/post/deletePost`;
       const payload = { ...removeEntry };
@@ -208,6 +216,7 @@ export default function Post({ params }) {
       setError(null);
       setSuccessMessage(response.data.message);
       window.location.pathname = `/dashboard/tables/table/${dbId}/posts`;
+      // router.push(`/dashboard/tables/table/${dbId}/posts`);
     } catch (err) {
       setSuccessMessage(null);
       if (err.response) {
@@ -257,6 +266,7 @@ export default function Post({ params }) {
   useEffect(() => {
     getPost();
     getUser();
+    // getTHeaders();
     getDb();
     // eslint-disable-next-line
   }, []);
@@ -363,7 +373,7 @@ export default function Post({ params }) {
                               </div>
                             )
                           )}
-                          {db.media && (
+                          {db && db.media && (
                             <div className="card-body text-center shadow">
                               <Image
                                 priority

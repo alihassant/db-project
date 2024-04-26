@@ -1,4 +1,4 @@
-# Database Project          
+# Database Project
 
 There will be multiple modules and roles in this project. This is list of the modules and roles are as follows:
 
@@ -34,7 +34,64 @@ After registration, when a user logs in, the role of the user should be immediat
 
 ## APIs:
 
+All endpoints start with:
+
+`/api/controllerName/endPointName`
+
 Following are the working APIs:
+
+- ### controller/auth.js:
+
+  To access this, use
+  `/api/auth/*endPointName`
+
+  Following are the endpoints available in this controller:
+
+  - #### signup()
+
+    `POST '/api/auth/signup'`
+
+    This API accepts name, email, username, password and priceId of the product/subscription. If any of the field is missing it will return an error with a status code of `422`.
+
+    If all the data is correct and email, username is unique, password will be encrypted using `bcrypt` package and a new account will be registered. All the data including hashed password will be stored on a MongoDB cluster and the reponse will be the JSON Web Token(JWT) which should be stored in the cookies and it will be used to authenticate the user for future functionalities.
+
+  - #### login()
+
+    `POST '/api/auth/login'`
+
+    This endpoint accepts email and password to verify a user. If a user is registered, this endpoint will return a JSON Web Token(JWT) which should be stored in the cookies and it will be used to authenticate the user for future functionalities. If the email or password is wrong, an error will be returned with the error respected message.
+
+  - #### getResetPasswordLink()
+
+    `POST '/api/auth/getResetPasswordLink'`
+
+    This endpoint accepts email. If the user with the given email doesn't exist it will return and error with a status code `404`. If the email exists, a random code will be generated and will be stored in the user's info. A link will be sent to the user's registered email and on clicking the link, the user will be able to change the password. That link will expire in 15 minutes and should be used in that time, if the link is expired, it will return an error with the message
+
+    ```json
+    {
+      "message": "Token invalid, Please reset the password again."
+    }
+    ```
+
+  - #### resetPassword()
+
+    `POST '/api/auth/resetPassword'`
+
+    This endpoint accepts password and the token available in the link param. If the token is wrong or expired, it will return an error,
+
+    ```json
+    {
+      "message": "Token invalid, Please reset the password again."
+    }
+    ```
+
+    If the token is correct and is verified, it will hash the password and change the password. The token will be deleted and will not be accessed again.
+
+  - #### getUser()
+
+    `GET '/api/auth/getUser'`
+
+    This endpoint accepts userId in params of the request and will return the users info. The userId should be extracted from JSON Web Token(JWT).
 
 - ### controller/adminController.js:
 
@@ -44,15 +101,6 @@ Following are the working APIs:
 
   - #### findUser()
     This API allows an admin to find user by their email.
-
-- ### controller/auth.js:
-
-  - #### signup()
-
-    This API allows the users to signup.
-
-  - #### login()
-    This API allows the users to login.
 
 - ### controller/post-data.js:
 
